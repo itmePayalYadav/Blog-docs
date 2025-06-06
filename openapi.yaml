@@ -1,0 +1,198 @@
+openapi: 3.0.3
+info:
+  title: Blog Application API
+  description: RESTful API documentation for the Blog Application
+  version: 1.0.0
+  contact:
+    name: Dev Team
+    email: support@blogapp.com
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: Authentication & Authorization
+  - name: Users
+    description: User profile and follow system
+  - name: Blogs
+    description: Blog management endpoints
+  - name: Comments
+    description: Comment system
+  - name: Admin
+    description: Admin-level controls
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        201:
+          description: User registered successfully
+        400:
+          description: Invalid input
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in an existing user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        200:
+          description: User logged in successfully
+        401:
+          description: Unauthorized
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Profile data
+        401:
+          description: Unauthorized
+
+  /blogs:
+    post:
+      tags: [Blogs]
+      summary: Create a new blog post
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                content: { type: string }
+                tags: { type: array, items: { type: string } }
+      responses:
+        201:
+          description: Blog created
+        400:
+          description: Validation error
+
+    get:
+      tags: [Blogs]
+      summary: Get list of published blogs
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 10 }
+      responses:
+        200:
+          description: List of blogs
+
+  /blogs/{id}:
+    get:
+      tags: [Blogs]
+      summary: Get a single blog post
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Blog post details
+        404:
+          description: Blog not found
+
+    put:
+      tags: [Blogs]
+      summary: Update a blog post
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                content: { type: string }
+                tags: { type: array, items: { type: string } }
+      responses:
+        200:
+          description: Blog updated
+        403:
+          description: Not authorized
+        404:
+          description: Blog not found
+
+    delete:
+      tags: [Blogs]
+      summary: Delete a blog post
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Blog deleted
+        403:
+          description: Not authorized
+        404:
+          description: Blog not found
+
+  /comments/{blogId}:
+    post:
+      tags: [Comments]
+      summary: Add a comment to a blog
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: blogId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content: { type: string }
+      responses:
+        201:
+          description: Comment added
+        400:
+          description: Invalid input
